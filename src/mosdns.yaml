@@ -1,0 +1,137 @@
+log:
+    file: ""
+    level: error
+
+plugins:
+
+#usehosts-yes  - tag: "usehosts"
+#usehosts-yes    type: "hosts"
+#usehosts-yes    args:
+#usehosts-yes#serverip-enable      entries:
+#usehosts-yes#serverip-enable        - "paopao.dns {SERVER_IP}"
+#usehosts-yes#usehosts-enable      files:
+#usehosts-yes#usehosts-enable        - "/tmp/hosts.txt" 
+
+  - tag: "force_cn_list"
+    type: "domain_set"
+    args:
+      files:
+        - "/tmp/force_cn_list.txt"
+#cntracker-yes        - "/tmp/cn_tracker_list.txt"
+
+  - tag: "force_nocn_list"
+    type: "domain_set"
+    args:
+      files:
+        - "/tmp/force_nocn_list.txt"
+
+#customforward-seted  - tag: "force_forward_list"
+#customforward-seted    type: "domain_set"
+#customforward-seted    args:
+#customforward-seted      files:
+#customforward-seted        - "/tmp/force_forward_list.txt"
+
+#cnfall  - tag: cn_test
+#cnfall    type: forward
+#cnfall    args:
+#cnfall      concurrent: 3
+#cnfall      upstreams:
+#cnfall        - addr: "udp://127.0.0.1:5301"
+#cnfall        - addr: "udp://223.5.5.5"
+#cnfall        - addr: "udp://119.29.29.29"
+
+  - tag: local_unbound
+    type: forward
+    args:
+      upstreams:
+        - addr: "udp://127.0.0.1:5301"
+
+#customforward-seted  - tag: force_forward
+#customforward-seted    type: forward
+#customforward-seted    args:
+#customforward-seted      upstreams:
+#customforward-seted        - addr: "udp://{CUSTOM_FORWARD}"
+
+  - tag: forward_unbound
+    type: forward
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "udp://127.0.0.1:5304"
+#nosocks        - addr: "udp://127.0.0.1:5302"
+#socksok        - addr: "udp://127.0.0.1:5303"
+
+  - tag: cnip
+    type: mmdb
+    args:
+      file: "/data/Country-only-cn-private.mmdb"
+
+  - tag: main_sequence
+    type: sequence
+    args:
+#usehosts-yes        - exec: $usehosts
+        - matches: qtype 65
+          exec: reject 0
+#ipv6raw        - matches: 
+#ipv6ok          - qname $force_nocn_list
+#ipv6raw          - qtype 28
+#ipv6raw          exec: reject 0
+        - matches: 
+          - "!qtype 1 2 5 28 15 16 33 6 99"
+          exec: $local_unbound
+        - matches: has_wanted_ans
+          exec: accept
+#customforward-seted        - matches: qname $force_forward_list
+#customforward-seted          exec: $force_forward
+#customforward-seted        - matches: qname $force_forward_list
+#customforward-seted          exec: accept
+        - matches: qname $force_nocn_list
+          exec: $forward_unbound
+        - matches: qname $force_nocn_list
+          exec: accept
+        - matches: qname $force_cn_list
+          exec: $local_unbound
+        - matches: qname $force_cn_list
+          exec: accept
+#cnfall        - exec: cache 1024
+#cnfall        - matches: has_wanted_ans
+#cnfall          exec: accept
+#ipv6only6        - exec: prefer_ipv4
+#nofall        - exec: $local_unbound
+#cnfall        - exec: $cn_test
+        - matches: 
+          - "!qtype 1 28"
+          - has_wanted_ans
+          exec: accept
+        - matches: resp_ip_mmdb $cnip CN
+          exec: accept
+        - exec: drop_resp
+#ipv6ok        - exec: prefer_ipv4
+#autoforward-yes#autoforward-check        - exec: $forward_unbound
+#autoforward-yes#autoforward-check        - matches: resp_ip_mmdb $cnip PRIVATE
+#autoforward-yes#autoforward-check          exec: accept
+#autoforward-yes#autoforward-check        - matches: "!has_wanted_ans"
+#autoforward-yes#autoforward-check          exec: reject 0
+#autoforward-yes#autoforward-check        - exec: drop_resp
+#autoforward-yes#autoforward-check        - exec: $force_forward
+#autoforward-yes#autoforward-check        - matches: has_wanted_ans
+#autoforward-yes#autoforward-check          exec: accept
+#autoforward-yes#autoforward-nocheck        - exec: $force_forward
+#autoforward-yes#autoforward-nocheck        - matches: has_wanted_ans
+#autoforward-yes#autoforward-nocheck          exec: accept
+#autoforward-no        - exec: $forward_unbound
+#autoforward-no        - matches: has_wanted_ans
+#autoforward-no          exec: accept
+        - exec: reject 0
+
+  - tag: udp_server
+    type: udp_server
+    args:
+      entry: main_sequence
+      listen: :53
+  - tag: "tcp_server"
+    type: "tcp_server"
+    args:
+      entry: main_sequence
+      listen: :53
+      idle_timeout: 5

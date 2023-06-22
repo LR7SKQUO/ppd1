@@ -1,0 +1,3 @@
+[submodule "submodules/PaoPaoDNS"]
+	path = submodules/PaoPaoDNS
+	url = https://github.com/kkkgo/PaoPaoDNS.git
