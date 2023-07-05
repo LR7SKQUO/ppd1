@@ -25,3 +25,6 @@ RUN cp /src/Country-only-cn-private.mmdb /tmp/ &&\
     cp /src/unbound_custom.conf /tmp/ &&\
     cp /src/watch_list.sh /tmp/ &&\
     cp /src/redis-server /tmp/
+# export files
+VOLUME /data
+ENTRYPOINT ["/bin/sh", "-c", "rm -rf /data/src.tar && tar -cvf /data/src.tar /src && echo 'done!' && tail -f /dev/null"]
