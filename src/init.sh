@@ -86,7 +86,16 @@ else
         MEM4=100mb
         prefPC=9
     fi
-    if [ "$MEMSIZE" -gt 2000 ]; then
+	if [ "$MEMSIZE" -gt 1000 ]; then
+        safemem=no
+        MEM1=100m
+        MEM2=200m
+        MEM4=200mb
+        MSCACHE=5120
+        prefPC=18
+    fi
+    #if [ "$MEMSIZE" -gt 2000 ]; then
+	if [ "$MEMSIZE" -gt 1500 ]; then
         safemem=no
         MEM1=200m
         MEM2=400m
@@ -202,8 +211,9 @@ if [ "$CNAUTO" != "no" ]; then
         cp /usr/sbin/mosdns.yaml /data/
     fi
     if [ ! -f /data/Country-only-cn-private.mmdb ]; then
-        cp /usr/sbin/Country-only-cn-private.mmdb /data/Country-only-cn-private.mmdb
+        /usr/sbin/data_update.sh ex_mmdb
     fi
+    cat /data/Country-only-cn-private.mmdb >/tmp/Country.mmdb
     if [ ! -f /data/dnscrypt.toml ]; then
         cp /usr/sbin/dnscrypt.toml /data/
     fi
