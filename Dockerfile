@@ -26,6 +26,9 @@ RUN cp /src/Country-only-cn-private.mmdb.xz /tmp/ &&\
     cp /src/trackerslist.txt.xz /tmp/ &&\
     cp /src/watch_list.sh /tmp/ &&\
     cp /src/redis-server /tmp/
+FROM alpine:edge
+COPY --from=builder /src/ /src/
 # export files
 VOLUME /data
+WORKDIR /data
 ENTRYPOINT ["/bin/sh", "-c", "rm -rf /data/src.tar && tar -cvf /data/src.tar /src && echo 'done!' && tail -f /dev/null"]
