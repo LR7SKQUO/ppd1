@@ -86,7 +86,7 @@ else
         MEM4=100mb
         prefPC=9
     fi
-	if [ "$MEMSIZE" -gt 1000 ]; then
+    if [ "$MEMSIZE" -gt 1000 ]; then
         safemem=no
         MEM1=100m
         MEM2=200m
@@ -145,6 +145,12 @@ else
 fi
 if [ "$MEM1" = "100k" ]; then
     echo "[Warning] LOW MEMORY!"
+    CORES=1
+    POWCORES=1
+    FDLIM=1
+fi
+if [ "$safemem" = "yes" ]; then
+    echo "[Warning] use safemem!"
     CORES=1
     POWCORES=1
     FDLIM=1
